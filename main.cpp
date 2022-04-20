@@ -3,8 +3,6 @@
 #include <sstream>
 #include <vector>
 #include <string>
-#include <list>
-#include <unordered_set>
 #include <iomanip>
 #include <bits/stdc++.h>
 using namespace std;
@@ -38,8 +36,6 @@ public:
     Food** sides;
     int sSize;
     float scale;
-    //map<int, vector<vector<Food*>>> meals;
-
 
     MealPlan(float cal, float protein, float fat, float carb);
     int HashFunction(string &name);
@@ -49,7 +45,6 @@ public:
     void heapifyBreakfast(int size, int index);
     void heapifyEntrees(int size, int index);
     void heapifySides(int size, int index);
-    void PrintMeals();
     void getBreakfast() const;
     void getLunch() const;
     void getDinner();
@@ -221,30 +216,6 @@ void MealPlan::heapifySides(int size, int index){
     }
 }
 
-//void MealPlan::PrintMeals(){
-//
-//    int i = 1;
-//    while(i <= 3){
-//        cout << "\nDAY " << i << " MEALS:" << endl;
-//        for(int j = 1; j <= 3; j++){
-//            for(int k = 0; k < meals[i][j].size(); k++){
-//                if(j == 1){
-//                    cout << left << setw(35) << " " << left << setw(35) << "Breakfast:\n------------------------------------------------------------------------------------------" << endl;
-//                }
-//                else if(j == 2){
-//                    cout << left << setw(35) << " " << left << setw(35) <<  "Lunch:\n------------------------------------------------------------------------------------------" << endl;
-//                }
-//                else if(j == 3){
-//                    cout << left << setw(35) << " " << left << setw(35) << "Dinner:\n------------------------------------------------------------------------------------------" << endl;
-//                }
-//                cout << left  << setw(15) << "Amount (g)" << left << setw(25) << "Name"  << left << setw(13) << "Calories" << left << setw(13)
-//                     << "Protein" << left << setw(13) << "Fat" << left << setw(13) << "Carbs\n------------------------------------------------------------------------------------------" << endl;
-//                cout << left  << setw(15) << scale*meals[i][j][k]->grams << left << setw(25) << meals[i][j][k]->name << left << setw(13) << scale*meals[i][j][k]->calories << left << setw(13) << scale*meals[i][j][k]->protein << left << setw(13) << scale*meals[i][j][k]->fat << left << setw(13) << scale*meals[i][j][k]->carb << endl;
-//            }
-//        }
-//    }
-//}
-
 void MealPlan::getBreakfast() const {
     float calGoal = totalCal/4;
     float proGoal = totalPro/4;
@@ -301,13 +272,13 @@ void MealPlan::getDinner() {
         float temp = scale*sides[i]->calories - (calGoal/2.0);
         float temp2 = scale*sides[i]->protein - proGoal;
         float temp3 = scale*sides[i]->carb - carbGoal;
-        if(temp <= 30 && (temp2 <= 10 || temp3 <= 15) && scale*sides[i]->foodGroup != group){ //&& sides[i]->carb <= (temp) && sides[i]->protein <= (temp)
+        if(temp <= 30 && (temp2 <= 10 || temp3 <= 15) && sides[i]->foodGroup != group){ //&& sides[i]->carb <= (temp) && sides[i]->protein <= (temp)
             string name = sides[i]->name;
             if (find(used.begin(),used.end(), name) != used.end()) continue;
             used.push_back(name);
             cout << left  << setw(15) << scale*sides[i]->grams << left  << setw(25) << name << left  << setw(13) << scale*sides[i]->calories << left  << setw(13) << scale*sides[i]->protein << left  << setw(13) << scale*sides[i]->fat << left  << setw(13) << scale*sides[i]->carb << endl;
             count += scale*sides[i]->calories;
-            group = scale*sides[i]->foodGroup;
+            group = sides[i]->foodGroup;
             if(count >= (calGoal - 50))
                 break;
         }
@@ -337,15 +308,15 @@ void MealPlan::getLunch() const {
     float count = 0;
     float group = 0;
     for(int i = 1; i < sSize; i += 2){
-        float temp = sides[i]->calories - (calGoal/2);
-        float temp2 = sides[i]->protein - proGoal;
-        float temp3 = sides[i]->carb - carbGoal;
+        float temp = (scale/1.5)*sides[i]->calories - (calGoal/2);
+        float temp2 = (scale/1.5)*sides[i]->protein - proGoal;
+        float temp3 = (scale/1.5)*sides[i]->carb - carbGoal;
         if(temp <= 30 && (temp2 <= 10 || temp3 <= 15) && sides[i]->foodGroup != group){ //&& sides[i]->carb <= (temp) && sides[i]->protein <= (temp)
             string name = sides[i]->name;
             if (find(used.begin(),used.end(), name) != used.end()) continue;
             used.push_back(name);
-            cout << left  << setw(15) << sides[i]->grams << left  << setw(25) << name << left  << setw(13) << sides[i]->calories << left  << setw(13) << sides[i]->protein << left  << setw(13) << sides[i]->fat << left  << setw(13) << sides[i]->carb << endl;
-            count += sides[i]->calories;
+            cout << left  << setw(15) << (scale/1.5)*sides[i]->grams << left  << setw(25) << name << left  << setw(13) << (scale/1.5)*sides[i]->calories << left  << setw(13) <<  (scale/1.5)*sides[i]->protein << left  << setw(13) << (scale/1.5)*sides[i]->fat << left  << setw(13) << (scale/1.5)*sides[i]->carb << endl;
+            count += (scale/1.5)*sides[i]->calories;
             group = sides[i]->foodGroup;
             if(count >= (calGoal - 50))
                 break;
@@ -475,18 +446,28 @@ int main() {
 
     cal = BMR(weight, height, age, gender);
     cout << "\n\nYour resting basal metabolic rate (BMR): " << cal << endl;
-    if (goalWeight > weight) {
-        cal += 500;
-        protein = weight;
-        carb = weight * 2;
-        fat = weight * 0.5;
-    }
-    else {
+    if(weight > goalWeight) {
         cal -= 500;
+        if(cal <= (9*protein))
+            cal *= 1.1;
         protein = weight;
         carb = weight * 1.5;
         fat = weight * 0.3;
     }
+    else if(goalWeight > weight) {
+        cal += 500;
+        protein = weight;
+        if(cal >= (12*protein))
+            cal *= 0.90;
+        carb = weight * 1.5;
+        fat = weight * 0.5;
+    }
+    else{
+        protein = weight;
+        carb = weight * 1.5;
+        fat = weight * 0.4;
+    }
+
 
     MealPlan mealPlan(cal, protein, fat, carb);
     cout << "\nBased on your goal, below is your recommended daily macronutrient intake range:" << endl;
@@ -522,7 +503,7 @@ int main() {
     cout << endl << endl;
     cout << "*NOTE* this is the nutrition information for little to no physical activity. If you are active, you must consume\nadditional calories each day equivalent to the amount burned while active.\n" << endl;
     cout << "IF MEAL PLAN IS FOLLOWED STRICTLY\n----------------------------------------" << endl;
-    cout << "Time Period to Reach " << goalWeight << " Pounds: " << weight-goalWeight << " weeks" << endl;
+    cout << "Time Period to Reach " << goalWeight << " Pounds: " << abs(weight-goalWeight) << " weeks" << endl;
     cout << endl << endl;
     cout << "*****************************************\n";
     cout << "*                                       *\n";
